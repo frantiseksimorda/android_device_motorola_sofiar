@@ -31,17 +31,13 @@
 #include <unistd.h>
 #include <android-base/properties.h>
 #include <android-base/logging.h>
-#include "property_service.h"
 #include <sys/resource.h>
 #define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
 #include <sys/_system_properties.h>
 #include <vector>
 
-namespace android {
-namespace init {
-
 using android::base::GetProperty;
-using android::init::property_set;
+using android::base::SetProperty;
 
 std::vector<std::string> ro_props_default_source_order = {
     "",
@@ -53,16 +49,16 @@ std::vector<std::string> ro_props_default_source_order = {
 
 void property_override(char const prop[], char const value[], bool add = true)
 {
-    prop_info *pi;
+    auto pi = (prop_info *) __system_property_find(prop);
 
-    pi = (prop_info*) __system_property_find(prop);
-    if (pi)
+    if (pi != nullptr) {
     __system_property_update(pi, value, strlen(value));
-    else if (add)
+    } else if (add) {
     __system_property_add(prop, strlen(prop), value, strlen(value));
+    }
 }
 
-void vendor_load_properties() {
+void moto_device_properties() {
 
     const auto set_ro_build_prop = [](const std::string &source,
             const std::string &prop, const std::string &value) {
@@ -79,7 +75,6 @@ void vendor_load_properties() {
     std::string device = GetProperty("ro.boot.device", "");
     if (device == "sofia") {
         property_override("ro.build.description", "sofia_retail-user 10 QPMS30.80-94-2 604e5 release-keys");
-        property_override("ro.build.version.security_patch", "2020-07-01");
         for (const auto &source : ro_props_default_source_order) {
             set_ro_build_prop(source, "fingerprint", "motorola/sofia_retail/sofia:10/QPMS30.80-94-2/604e5:user/release-keys");
             set_ro_product_prop(source, "device", "sofia");
@@ -88,7 +83,6 @@ void vendor_load_properties() {
         }
     } else if (device == "sofiap") {
         property_override("ro.build.description", "sofiap_retail-user 10 QPRS30.80-58-5 5f0ed release-keys");
-        property_override("ro.build.version.security_patch", "2020-07-01");
         for (const auto &source : ro_props_default_source_order) {
             set_ro_build_prop(source, "fingerprint", "motorola/sofiap_retail/sofiap:10/QPRS30.80-58-5/5f0ed:user/release-keys");
             set_ro_product_prop(source, "device", "sofiap");
@@ -97,7 +91,6 @@ void vendor_load_properties() {
         }
     } else if (device == "sofiar") {
         property_override("ro.build.description", "sofiar_retail-user 10 QPES30.79-124-2 42d236 release-keys");
-        property_override("ro.build.version.security_patch", "2020-07-01");
         for (const auto &source : ro_props_default_source_order) {
             set_ro_build_prop(source, "fingerprint", "motorola/sofiar_retail/sofiar:10/QPES30.79-124-2/42d236:user/release-keys");
             set_ro_product_prop(source, "device", "sofiar");
@@ -106,7 +99,6 @@ void vendor_load_properties() {
         }
     } else if (device == "sofiap_ao" || device == "sofiap_sprout") {
         property_override("ro.build.description", "sofiap_ao-user 10 QPRS30.80-109-2-5 298f91 release-keys");
-        property_override("ro.build.version.security_patch", "2020-07-01");
         for (const auto &source : ro_props_default_source_order) {
             set_ro_build_prop(source, "fingerprint", "motorola/sofiap_ao/sofiap_sprout:10/QPRS30.80-109-2-5/298f91:user/release-keys");
             set_ro_product_prop(source, "device", "sofiap_sprout");
@@ -115,7 +107,6 @@ void vendor_load_properties() {
         }
     } else if (device == "rav_t") {
         property_override("ro.build.description", "rav_t-user 10 QPJ30.131-61 95ac67 release-keys");
-        property_override("ro.build.version.security_patch", "2020-07-01");
         for (const auto &source : ro_props_default_source_order) {
             set_ro_build_prop(source, "fingerprint", "motorola/rav_t/rav:10/QPJ30.131-61/95ac67:user/release-keys");
             set_ro_product_prop(source, "device", "sofiap_sprout");
@@ -124,7 +115,6 @@ void vendor_load_properties() {
         }
     } else if (device == "rav") {
         property_override("ro.build.description", "rav_retail-user 10 QPJS30.63-35-1-9 2a90b release-keys");
-        property_override("ro.build.version.security_patch", "2020-07-01");
         for (const auto &source : ro_props_default_source_order) {
             set_ro_build_prop(source, "fingerprint", "motorola/rav_retail/rav:10/QPJS30.63-35-1-9/2a90b:user/release-keys");
             set_ro_product_prop(source, "device", "rav");
@@ -134,5 +124,7 @@ void vendor_load_properties() {
     }
 }
 
-}  // namespace init
-}  // namespace android
+
+void vendor_load_properties() {
+    moto_device_properties();
+}

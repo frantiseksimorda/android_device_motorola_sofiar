@@ -49,7 +49,8 @@ public class BootCompletedReceiver extends BroadcastReceiver {
             sOverlayService = new OverlayManager();
         }
         try {
-            String deviceProp = SystemProperties.get("ro.boot.device");
+            String deviceProp = SystemProperties.get("ro.product.vendor.device");
+            Log.i(TAG, "Found device " + deviceProp);
             if (deviceProp.contains("rav")) {
                 boolean isEnabled = sOverlayService.getOverlayInfo(ravOverlayPackageName,
                     UserHandle.myUserId()).isEnabled();
